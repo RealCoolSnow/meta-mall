@@ -1,9 +1,11 @@
 package data
 
 import (
-	"user-service/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
+	"user-service/internal/conf"
+	"user-service/internal/data/ent"
 )
 
 // ProviderSet is data providers.
@@ -11,7 +13,8 @@ var ProviderSet = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
-	// TODO wrapped database client
+	db  *ent.Client
+	rdb *redis.Client
 }
 
 // NewData .
