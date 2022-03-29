@@ -15,6 +15,7 @@ import (
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -221,6 +222,22 @@ func (c *UserClient) GetX(ctx context.Context, id int64) *User {
 	return obj
 }
 
+// QueryID queries the id edge of a User.
+func (c *UserClient) QueryID(u *User) *UserLogQuery {
+	query := &UserLogQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(userlog.Table, userlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.IDTable, user.IDColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -399,6 +416,22 @@ func (c *UserLogClient) GetX(ctx context.Context, id int64) *UserLog {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryOwner queries the owner edge of a UserLog.
+func (c *UserLogClient) QueryOwner(ul *UserLog) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ul.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userlog.Table, userlog.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userlog.OwnerTable, userlog.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(ul.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

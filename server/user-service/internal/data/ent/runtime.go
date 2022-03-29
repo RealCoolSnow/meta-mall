@@ -65,9 +65,13 @@ func init() {
 	userlogFields := schema.UserLog{}.Fields()
 	_ = userlogFields
 	// userlogDescIP is the schema descriptor for ip field.
-	userlogDescIP := userlogFields[2].Descriptor()
+	userlogDescIP := userlogFields[1].Descriptor()
 	// userlog.DefaultIP holds the default value on creation for the ip field.
 	userlog.DefaultIP = userlogDescIP.Default.(string)
+	// userlogDescExtra is the schema descriptor for extra field.
+	userlogDescExtra := userlogFields[2].Descriptor()
+	// userlog.DefaultExtra holds the default value on creation for the extra field.
+	userlog.DefaultExtra = userlogDescExtra.Default.(string)
 	// userlogDescCreateTime is the schema descriptor for create_time field.
 	userlogDescCreateTime := userlogFields[3].Descriptor()
 	// userlog.DefaultCreateTime holds the default value on creation for the create_time field.

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"user-service/internal/data/ent/predicate"
+	"user-service/internal/data/ent/user"
 	"user-service/internal/data/ent/userlog"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,6 +25,9 @@ type UserLogQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.UserLog
+	// eager-loading edges.
+	withOwner *UserQuery
+	withFKs   bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +62,28 @@ func (ulq *UserLogQuery) Unique(unique bool) *UserLogQuery {
 func (ulq *UserLogQuery) Order(o ...OrderFunc) *UserLogQuery {
 	ulq.order = append(ulq.order, o...)
 	return ulq
+}
+
+// QueryOwner chains the current query on the "owner" edge.
+func (ulq *UserLogQuery) QueryOwner() *UserQuery {
+	query := &UserQuery{config: ulq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ulq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ulq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userlog.Table, userlog.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userlog.OwnerTable, userlog.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ulq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first UserLog entity from the query.
@@ -241,11 +267,23 @@ func (ulq *UserLogQuery) Clone() *UserLogQuery {
 		offset:     ulq.offset,
 		order:      append([]OrderFunc{}, ulq.order...),
 		predicates: append([]predicate.UserLog{}, ulq.predicates...),
+		withOwner:  ulq.withOwner.Clone(),
 		// clone intermediate query.
 		sql:    ulq.sql.Clone(),
 		path:   ulq.path,
 		unique: ulq.unique,
 	}
+}
+
+// WithOwner tells the query-builder to eager-load the nodes that are connected to
+// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (ulq *UserLogQuery) WithOwner(opts ...func(*UserQuery)) *UserLogQuery {
+	query := &UserQuery{config: ulq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ulq.withOwner = query
+	return ulq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -254,12 +292,12 @@ func (ulq *UserLogQuery) Clone() *UserLogQuery {
 // Example:
 //
 //	var v []struct {
-//		UserID int64 `json:"user_id,omitempty"`
+//		IP string `json:"ip,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UserLog.Query().
-//		GroupBy(userlog.FieldUserID).
+//		GroupBy(userlog.FieldIP).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -281,11 +319,11 @@ func (ulq *UserLogQuery) GroupBy(field string, fields ...string) *UserLogGroupBy
 // Example:
 //
 //	var v []struct {
-//		UserID int64 `json:"user_id,omitempty"`
+//		IP string `json:"ip,omitempty"`
 //	}
 //
 //	client.UserLog.Query().
-//		Select(userlog.FieldUserID).
+//		Select(userlog.FieldIP).
 //		Scan(ctx, &v)
 //
 func (ulq *UserLogQuery) Select(fields ...string) *UserLogSelect {
@@ -311,9 +349,19 @@ func (ulq *UserLogQuery) prepareQuery(ctx context.Context) error {
 
 func (ulq *UserLogQuery) sqlAll(ctx context.Context) ([]*UserLog, error) {
 	var (
-		nodes = []*UserLog{}
-		_spec = ulq.querySpec()
+		nodes       = []*UserLog{}
+		withFKs     = ulq.withFKs
+		_spec       = ulq.querySpec()
+		loadedTypes = [1]bool{
+			ulq.withOwner != nil,
+		}
 	)
+	if ulq.withOwner != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, userlog.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &UserLog{config: ulq.config}
 		nodes = append(nodes, node)
@@ -324,6 +372,7 @@ func (ulq *UserLogQuery) sqlAll(ctx context.Context) ([]*UserLog, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, ulq.driver, _spec); err != nil {
@@ -332,6 +381,36 @@ func (ulq *UserLogQuery) sqlAll(ctx context.Context) ([]*UserLog, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := ulq.withOwner; query != nil {
+		ids := make([]int64, 0, len(nodes))
+		nodeids := make(map[int64][]*UserLog)
+		for i := range nodes {
+			if nodes[i].user_id == nil {
+				continue
+			}
+			fk := *nodes[i].user_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Owner = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

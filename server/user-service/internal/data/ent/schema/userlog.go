@@ -17,8 +17,9 @@ type UserLog struct {
 func (UserLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id"),
-		field.Int64("user_id"),
+		//field.Int64("user_id"),
 		field.String("ip").Default(""),
+		field.String("extra").Default(""),
 		field.Time("create_time").
 			Default(time.Now).SchemaType(map[string]string{
 			dialect.MySQL: "datetime",
@@ -29,6 +30,6 @@ func (UserLog) Fields() []ent.Field {
 // Edges of the UserLog.
 func (UserLog) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).Ref("user_logs").Unique().Field("user_id"),
+		edge.From("owner", User.Type).Ref("id").Unique().Required(),
 	}
 }

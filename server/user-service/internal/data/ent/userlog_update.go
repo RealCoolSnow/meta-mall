@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 	"user-service/internal/data/ent/predicate"
+	"user-service/internal/data/ent/user"
 	"user-service/internal/data/ent/userlog"
 
 	"entgo.io/ent/dialect/sql"
@@ -28,19 +29,6 @@ func (ulu *UserLogUpdate) Where(ps ...predicate.UserLog) *UserLogUpdate {
 	return ulu
 }
 
-// SetUserID sets the "user_id" field.
-func (ulu *UserLogUpdate) SetUserID(i int64) *UserLogUpdate {
-	ulu.mutation.ResetUserID()
-	ulu.mutation.SetUserID(i)
-	return ulu
-}
-
-// AddUserID adds i to the "user_id" field.
-func (ulu *UserLogUpdate) AddUserID(i int64) *UserLogUpdate {
-	ulu.mutation.AddUserID(i)
-	return ulu
-}
-
 // SetIP sets the "ip" field.
 func (ulu *UserLogUpdate) SetIP(s string) *UserLogUpdate {
 	ulu.mutation.SetIP(s)
@@ -55,15 +43,46 @@ func (ulu *UserLogUpdate) SetNillableIP(s *string) *UserLogUpdate {
 	return ulu
 }
 
+// SetExtra sets the "extra" field.
+func (ulu *UserLogUpdate) SetExtra(s string) *UserLogUpdate {
+	ulu.mutation.SetExtra(s)
+	return ulu
+}
+
+// SetNillableExtra sets the "extra" field if the given value is not nil.
+func (ulu *UserLogUpdate) SetNillableExtra(s *string) *UserLogUpdate {
+	if s != nil {
+		ulu.SetExtra(*s)
+	}
+	return ulu
+}
+
 // SetCreateTime sets the "create_time" field.
 func (ulu *UserLogUpdate) SetCreateTime(t time.Time) *UserLogUpdate {
 	ulu.mutation.SetCreateTime(t)
 	return ulu
 }
 
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (ulu *UserLogUpdate) SetOwnerID(id int64) *UserLogUpdate {
+	ulu.mutation.SetOwnerID(id)
+	return ulu
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (ulu *UserLogUpdate) SetOwner(u *User) *UserLogUpdate {
+	return ulu.SetOwnerID(u.ID)
+}
+
 // Mutation returns the UserLogMutation object of the builder.
 func (ulu *UserLogUpdate) Mutation() *UserLogMutation {
 	return ulu.mutation
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (ulu *UserLogUpdate) ClearOwner() *UserLogUpdate {
+	ulu.mutation.ClearOwner()
+	return ulu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -74,12 +93,18 @@ func (ulu *UserLogUpdate) Save(ctx context.Context) (int, error) {
 	)
 	ulu.defaults()
 	if len(ulu.hooks) == 0 {
+		if err = ulu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = ulu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserLogMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = ulu.check(); err != nil {
+				return 0, err
 			}
 			ulu.mutation = mutation
 			affected, err = ulu.sqlSave(ctx)
@@ -129,6 +154,14 @@ func (ulu *UserLogUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (ulu *UserLogUpdate) check() error {
+	if _, ok := ulu.mutation.OwnerID(); ulu.mutation.OwnerCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "UserLog.owner"`)
+	}
+	return nil
+}
+
 func (ulu *UserLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -147,25 +180,18 @@ func (ulu *UserLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ulu.mutation.UserID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: userlog.FieldUserID,
-		})
-	}
-	if value, ok := ulu.mutation.AddedUserID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: userlog.FieldUserID,
-		})
-	}
 	if value, ok := ulu.mutation.IP(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: userlog.FieldIP,
+		})
+	}
+	if value, ok := ulu.mutation.Extra(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: userlog.FieldExtra,
 		})
 	}
 	if value, ok := ulu.mutation.CreateTime(); ok {
@@ -174,6 +200,41 @@ func (ulu *UserLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: userlog.FieldCreateTime,
 		})
+	}
+	if ulu.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userlog.OwnerTable,
+			Columns: []string{userlog.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ulu.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userlog.OwnerTable,
+			Columns: []string{userlog.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ulu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -194,19 +255,6 @@ type UserLogUpdateOne struct {
 	mutation *UserLogMutation
 }
 
-// SetUserID sets the "user_id" field.
-func (uluo *UserLogUpdateOne) SetUserID(i int64) *UserLogUpdateOne {
-	uluo.mutation.ResetUserID()
-	uluo.mutation.SetUserID(i)
-	return uluo
-}
-
-// AddUserID adds i to the "user_id" field.
-func (uluo *UserLogUpdateOne) AddUserID(i int64) *UserLogUpdateOne {
-	uluo.mutation.AddUserID(i)
-	return uluo
-}
-
 // SetIP sets the "ip" field.
 func (uluo *UserLogUpdateOne) SetIP(s string) *UserLogUpdateOne {
 	uluo.mutation.SetIP(s)
@@ -221,15 +269,46 @@ func (uluo *UserLogUpdateOne) SetNillableIP(s *string) *UserLogUpdateOne {
 	return uluo
 }
 
+// SetExtra sets the "extra" field.
+func (uluo *UserLogUpdateOne) SetExtra(s string) *UserLogUpdateOne {
+	uluo.mutation.SetExtra(s)
+	return uluo
+}
+
+// SetNillableExtra sets the "extra" field if the given value is not nil.
+func (uluo *UserLogUpdateOne) SetNillableExtra(s *string) *UserLogUpdateOne {
+	if s != nil {
+		uluo.SetExtra(*s)
+	}
+	return uluo
+}
+
 // SetCreateTime sets the "create_time" field.
 func (uluo *UserLogUpdateOne) SetCreateTime(t time.Time) *UserLogUpdateOne {
 	uluo.mutation.SetCreateTime(t)
 	return uluo
 }
 
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (uluo *UserLogUpdateOne) SetOwnerID(id int64) *UserLogUpdateOne {
+	uluo.mutation.SetOwnerID(id)
+	return uluo
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (uluo *UserLogUpdateOne) SetOwner(u *User) *UserLogUpdateOne {
+	return uluo.SetOwnerID(u.ID)
+}
+
 // Mutation returns the UserLogMutation object of the builder.
 func (uluo *UserLogUpdateOne) Mutation() *UserLogMutation {
 	return uluo.mutation
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (uluo *UserLogUpdateOne) ClearOwner() *UserLogUpdateOne {
+	uluo.mutation.ClearOwner()
+	return uluo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -247,12 +326,18 @@ func (uluo *UserLogUpdateOne) Save(ctx context.Context) (*UserLog, error) {
 	)
 	uluo.defaults()
 	if len(uluo.hooks) == 0 {
+		if err = uluo.check(); err != nil {
+			return nil, err
+		}
 		node, err = uluo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserLogMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uluo.check(); err != nil {
+				return nil, err
 			}
 			uluo.mutation = mutation
 			node, err = uluo.sqlSave(ctx)
@@ -302,6 +387,14 @@ func (uluo *UserLogUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (uluo *UserLogUpdateOne) check() error {
+	if _, ok := uluo.mutation.OwnerID(); uluo.mutation.OwnerCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "UserLog.owner"`)
+	}
+	return nil
+}
+
 func (uluo *UserLogUpdateOne) sqlSave(ctx context.Context) (_node *UserLog, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -337,25 +430,18 @@ func (uluo *UserLogUpdateOne) sqlSave(ctx context.Context) (_node *UserLog, err 
 			}
 		}
 	}
-	if value, ok := uluo.mutation.UserID(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: userlog.FieldUserID,
-		})
-	}
-	if value, ok := uluo.mutation.AddedUserID(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt64,
-			Value:  value,
-			Column: userlog.FieldUserID,
-		})
-	}
 	if value, ok := uluo.mutation.IP(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: userlog.FieldIP,
+		})
+	}
+	if value, ok := uluo.mutation.Extra(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: userlog.FieldExtra,
 		})
 	}
 	if value, ok := uluo.mutation.CreateTime(); ok {
@@ -364,6 +450,41 @@ func (uluo *UserLogUpdateOne) sqlSave(ctx context.Context) (_node *UserLog, err 
 			Value:  value,
 			Column: userlog.FieldCreateTime,
 		})
+	}
+	if uluo.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userlog.OwnerTable,
+			Columns: []string{userlog.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uluo.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userlog.OwnerTable,
+			Columns: []string{userlog.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &UserLog{config: uluo.config}
 	_spec.Assign = _node.assignValues

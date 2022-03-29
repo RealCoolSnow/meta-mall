@@ -11,22 +11,37 @@ const (
 	Label = "user_log"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldUserID holds the string denoting the user_id field in the database.
-	FieldUserID = "user_id"
 	// FieldIP holds the string denoting the ip field in the database.
 	FieldIP = "ip"
+	// FieldExtra holds the string denoting the extra field in the database.
+	FieldExtra = "extra"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
 	// Table holds the table name of the userlog in the database.
 	Table = "user_logs"
+	// OwnerTable is the table that holds the owner relation/edge.
+	OwnerTable = "user_logs"
+	// OwnerInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	OwnerInverseTable = "users"
+	// OwnerColumn is the table column denoting the owner relation/edge.
+	OwnerColumn = "user_id"
 )
 
 // Columns holds all SQL columns for userlog fields.
 var Columns = []string{
 	FieldID,
-	FieldUserID,
 	FieldIP,
+	FieldExtra,
 	FieldCreateTime,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "user_logs"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -36,12 +51,19 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
 
 var (
 	// DefaultIP holds the default value on creation for the "ip" field.
 	DefaultIP string
+	// DefaultExtra holds the default value on creation for the "extra" field.
+	DefaultExtra string
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// UpdateDefaultCreateTime holds the default value on update for the "create_time" field.
