@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"user-service/internal/data/ent/user"
 	"user-service/internal/data/ent/userlog"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -19,6 +18,12 @@ type UserLogCreate struct {
 	config
 	mutation *UserLogMutation
 	hooks    []Hook
+}
+
+// SetUserID sets the "user_id" field.
+func (ulc *UserLogCreate) SetUserID(i int64) *UserLogCreate {
+	ulc.mutation.SetUserID(i)
+	return ulc
 }
 
 // SetIP sets the "ip" field.
@@ -67,17 +72,6 @@ func (ulc *UserLogCreate) SetNillableCreateTime(t *time.Time) *UserLogCreate {
 func (ulc *UserLogCreate) SetID(i int64) *UserLogCreate {
 	ulc.mutation.SetID(i)
 	return ulc
-}
-
-// SetOwnerID sets the "owner" edge to the User entity by ID.
-func (ulc *UserLogCreate) SetOwnerID(id int64) *UserLogCreate {
-	ulc.mutation.SetOwnerID(id)
-	return ulc
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (ulc *UserLogCreate) SetOwner(u *User) *UserLogCreate {
-	return ulc.SetOwnerID(u.ID)
 }
 
 // Mutation returns the UserLogMutation object of the builder.
@@ -167,6 +161,9 @@ func (ulc *UserLogCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ulc *UserLogCreate) check() error {
+	if _, ok := ulc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "UserLog.user_id"`)}
+	}
 	if _, ok := ulc.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`ent: missing required field "UserLog.ip"`)}
 	}
@@ -175,9 +172,6 @@ func (ulc *UserLogCreate) check() error {
 	}
 	if _, ok := ulc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "UserLog.create_time"`)}
-	}
-	if _, ok := ulc.mutation.OwnerID(); !ok {
-		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "UserLog.owner"`)}
 	}
 	return nil
 }
@@ -212,6 +206,14 @@ func (ulc *UserLogCreate) createSpec() (*UserLog, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
+	if value, ok := ulc.mutation.UserID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt64,
+			Value:  value,
+			Column: userlog.FieldUserID,
+		})
+		_node.UserID = value
+	}
 	if value, ok := ulc.mutation.IP(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -235,26 +237,6 @@ func (ulc *UserLogCreate) createSpec() (*UserLog, *sqlgraph.CreateSpec) {
 			Column: userlog.FieldCreateTime,
 		})
 		_node.CreateTime = value
-	}
-	if nodes := ulc.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   userlog.OwnerTable,
-			Columns: []string{userlog.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt64,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.user_id = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 	"user-service/internal/data/ent/user"
-	"user-service/internal/data/ent/userlog"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -107,21 +106,6 @@ func (uc *UserCreate) SetNillableUpdateTime(t *time.Time) *UserCreate {
 func (uc *UserCreate) SetID(i int64) *UserCreate {
 	uc.mutation.SetID(i)
 	return uc
-}
-
-// AddIDIDs adds the "id" edge to the UserLog entity by IDs.
-func (uc *UserCreate) AddIDIDs(ids ...int64) *UserCreate {
-	uc.mutation.AddIDIDs(ids...)
-	return uc
-}
-
-// AddID adds the "id" edges to the UserLog entity.
-func (uc *UserCreate) AddID(u ...*UserLog) *UserCreate {
-	ids := make([]int64, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return uc.AddIDIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -333,25 +317,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldUpdateTime,
 		})
 		_node.UpdateTime = value
-	}
-	if nodes := uc.mutation.IDIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.IDTable,
-			Columns: []string{user.IDColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt64,
-					Column: userlog.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

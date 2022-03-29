@@ -25,17 +25,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
-	// EdgeID holds the string denoting the id edge name in mutations.
-	EdgeID = "id"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// IDTable is the table that holds the id relation/edge.
-	IDTable = "user_logs"
-	// IDInverseTable is the table name for the UserLog entity.
-	// It exists in this package in order to avoid circular dependency with the "userlog" package.
-	IDInverseTable = "user_logs"
-	// IDColumn is the table column denoting the id relation/edge.
-	IDColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.

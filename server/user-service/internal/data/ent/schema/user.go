@@ -3,7 +3,6 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"errors"
 	"regexp"
@@ -41,7 +40,5 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.To("id", UserLog.Type),
-	}
+	return nil
 }

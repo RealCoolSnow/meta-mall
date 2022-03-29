@@ -45,9 +45,6 @@ type UserMutation struct {
 	create_time   *time.Time
 	update_time   *time.Time
 	clearedFields map[string]struct{}
-	id            map[int64]struct{}
-	removedid     map[int64]struct{}
-	clearedid     bool
 	done          bool
 	oldValue      func(context.Context) (*User, error)
 	predicates    []predicate.User
@@ -429,60 +426,6 @@ func (m *UserMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
-// AddIDIDs adds the "id" edge to the UserLog entity by ids.
-func (m *UserMutation) AddIDIDs(ids ...int64) {
-	if m.id == nil {
-		m.id = make(map[int64]struct{})
-	}
-	for i := range ids {
-		m.id[ids[i]] = struct{}{}
-	}
-}
-
-// ClearID clears the "id" edge to the UserLog entity.
-func (m *UserMutation) ClearID() {
-	m.clearedid = true
-}
-
-// IDCleared reports if the "id" edge to the UserLog entity was cleared.
-func (m *UserMutation) IDCleared() bool {
-	return m.clearedid
-}
-
-// RemoveIDIDs removes the "id" edge to the UserLog entity by IDs.
-func (m *UserMutation) RemoveIDIDs(ids ...int64) {
-	if m.removedid == nil {
-		m.removedid = make(map[int64]struct{})
-	}
-	for i := range ids {
-		delete(m.id, ids[i])
-		m.removedid[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedID returns the removed IDs of the "id" edge to the UserLog entity.
-func (m *UserMutation) RemovedIDIDs() (ids []int64) {
-	for id := range m.removedid {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// IDIDs returns the "id" edge IDs in the mutation.
-func (m *UserMutation) IDIDs() (ids []int64) {
-	for id := range m.id {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetID resets all changes to the "id" edge.
-func (m *UserMutation) ResetID() {
-	m.id = nil
-	m.clearedid = false
-	m.removedid = nil
-}
-
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -718,85 +661,49 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.id != nil {
-		edges = append(edges, user.EdgeID)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case user.EdgeID:
-		ids := make([]ent.Value, 0, len(m.id))
-		for id := range m.id {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.removedid != nil {
-		edges = append(edges, user.EdgeID)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case user.EdgeID:
-		ids := make([]ent.Value, 0, len(m.removedid))
-		for id := range m.removedid {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedid {
-		edges = append(edges, user.EdgeID)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
-	switch name {
-	case user.EdgeID:
-		return m.clearedid
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
-	switch name {
-	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
-	switch name {
-	case user.EdgeID:
-		m.ResetID()
-		return nil
-	}
 	return fmt.Errorf("unknown User edge %s", name)
 }
 
@@ -1177,12 +1084,12 @@ type UserLogMutation struct {
 	op            Op
 	typ           string
 	id            *int64
+	user_id       *int64
+	adduser_id    *int64
 	ip            *string
 	extra         *string
 	create_time   *time.Time
 	clearedFields map[string]struct{}
-	owner         *int64
-	clearedowner  bool
 	done          bool
 	oldValue      func(context.Context) (*UserLog, error)
 	predicates    []predicate.UserLog
@@ -1290,6 +1197,62 @@ func (m *UserLogMutation) IDs(ctx context.Context) ([]int64, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UserLogMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserLogMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserLog entity.
+// If the UserLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserLogMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *UserLogMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *UserLogMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserLogMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
 }
 
 // SetIP sets the "ip" field.
@@ -1400,45 +1363,6 @@ func (m *UserLogMutation) ResetCreateTime() {
 	m.create_time = nil
 }
 
-// SetOwnerID sets the "owner" edge to the User entity by id.
-func (m *UserLogMutation) SetOwnerID(id int64) {
-	m.owner = &id
-}
-
-// ClearOwner clears the "owner" edge to the User entity.
-func (m *UserLogMutation) ClearOwner() {
-	m.clearedowner = true
-}
-
-// OwnerCleared reports if the "owner" edge to the User entity was cleared.
-func (m *UserLogMutation) OwnerCleared() bool {
-	return m.clearedowner
-}
-
-// OwnerID returns the "owner" edge ID in the mutation.
-func (m *UserLogMutation) OwnerID() (id int64, exists bool) {
-	if m.owner != nil {
-		return *m.owner, true
-	}
-	return
-}
-
-// OwnerIDs returns the "owner" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OwnerID instead. It exists only for internal usage by the builders.
-func (m *UserLogMutation) OwnerIDs() (ids []int64) {
-	if id := m.owner; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetOwner resets all changes to the "owner" edge.
-func (m *UserLogMutation) ResetOwner() {
-	m.owner = nil
-	m.clearedowner = false
-}
-
 // Where appends a list predicates to the UserLogMutation builder.
 func (m *UserLogMutation) Where(ps ...predicate.UserLog) {
 	m.predicates = append(m.predicates, ps...)
@@ -1458,7 +1382,10 @@ func (m *UserLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserLogMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
+	if m.user_id != nil {
+		fields = append(fields, userlog.FieldUserID)
+	}
 	if m.ip != nil {
 		fields = append(fields, userlog.FieldIP)
 	}
@@ -1476,6 +1403,8 @@ func (m *UserLogMutation) Fields() []string {
 // schema.
 func (m *UserLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case userlog.FieldUserID:
+		return m.UserID()
 	case userlog.FieldIP:
 		return m.IP()
 	case userlog.FieldExtra:
@@ -1491,6 +1420,8 @@ func (m *UserLogMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case userlog.FieldUserID:
+		return m.OldUserID(ctx)
 	case userlog.FieldIP:
 		return m.OldIP(ctx)
 	case userlog.FieldExtra:
@@ -1506,6 +1437,13 @@ func (m *UserLogMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *UserLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case userlog.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	case userlog.FieldIP:
 		v, ok := value.(string)
 		if !ok {
@@ -1534,13 +1472,21 @@ func (m *UserLogMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserLogMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, userlog.FieldUserID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case userlog.FieldUserID:
+		return m.AddedUserID()
+	}
 	return nil, false
 }
 
@@ -1549,6 +1495,13 @@ func (m *UserLogMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case userlog.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown UserLog numeric field %s", name)
 }
@@ -1576,6 +1529,9 @@ func (m *UserLogMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserLogMutation) ResetField(name string) error {
 	switch name {
+	case userlog.FieldUserID:
+		m.ResetUserID()
+		return nil
 	case userlog.FieldIP:
 		m.ResetIP()
 		return nil
@@ -1591,76 +1547,48 @@ func (m *UserLogMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserLogMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.owner != nil {
-		edges = append(edges, userlog.EdgeOwner)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *UserLogMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case userlog.EdgeOwner:
-		if id := m.owner; id != nil {
-			return []ent.Value{*id}
-		}
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserLogMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UserLogMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserLogMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedowner {
-		edges = append(edges, userlog.EdgeOwner)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *UserLogMutation) EdgeCleared(name string) bool {
-	switch name {
-	case userlog.EdgeOwner:
-		return m.clearedowner
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *UserLogMutation) ClearEdge(name string) error {
-	switch name {
-	case userlog.EdgeOwner:
-		m.ClearOwner()
-		return nil
-	}
 	return fmt.Errorf("unknown UserLog unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *UserLogMutation) ResetEdge(name string) error {
-	switch name {
-	case userlog.EdgeOwner:
-		m.ResetOwner()
-		return nil
-	}
 	return fmt.Errorf("unknown UserLog edge %s", name)
 }

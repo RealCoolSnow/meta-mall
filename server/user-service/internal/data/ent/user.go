@@ -30,27 +30,6 @@ type User struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
-}
-
-// UserEdges holds the relations/edges for other nodes in the graph.
-type UserEdges struct {
-	// ID holds the value of the id edge.
-	ID []*UserLog `json:"id,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// IDOrErr returns the ID value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) IDOrErr() ([]*UserLog, error) {
-	if e.loadedTypes[0] {
-		return e.ID, nil
-	}
-	return nil, &NotLoadedError{edge: "id"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -130,11 +109,6 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
-}
-
-// QueryID queries the "id" edge of the User entity.
-func (u *User) QueryID() *UserLogQuery {
-	return (&UserClient{config: u.config}).QueryID(u)
 }
 
 // Update returns a builder for updating this User.

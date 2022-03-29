@@ -40,24 +40,16 @@ var (
 	// UserLogsColumns holds the columns for the "user_logs" table.
 	UserLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "ip", Type: field.TypeString, Default: ""},
 		{Name: "extra", Type: field.TypeString, Default: ""},
 		{Name: "create_time", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
-		{Name: "user_id", Type: field.TypeInt64},
 	}
 	// UserLogsTable holds the schema information for the "user_logs" table.
 	UserLogsTable = &schema.Table{
 		Name:       "user_logs",
 		Columns:    UserLogsColumns,
 		PrimaryKey: []*schema.Column{UserLogsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_logs_users_id",
-				Columns:    []*schema.Column{UserLogsColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -68,5 +60,4 @@ var (
 )
 
 func init() {
-	UserLogsTable.ForeignKeys[0].RefTable = UsersTable
 }
