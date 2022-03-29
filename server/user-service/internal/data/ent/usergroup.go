@@ -18,8 +18,12 @@ type UserGroup struct {
 	ID int32 `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// AccessLevel holds the value of the "access_level" field.
+	AccessLevel int `json:"access_level,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -27,11 +31,11 @@ func (*UserGroup) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case usergroup.FieldID:
+		case usergroup.FieldID, usergroup.FieldAccessLevel:
 			values[i] = new(sql.NullInt64)
 		case usergroup.FieldName:
 			values[i] = new(sql.NullString)
-		case usergroup.FieldCreateTime:
+		case usergroup.FieldCreateTime, usergroup.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type UserGroup", columns[i])
@@ -60,11 +64,23 @@ func (ug *UserGroup) assignValues(columns []string, values []interface{}) error 
 			} else if value.Valid {
 				ug.Name = value.String
 			}
+		case usergroup.FieldAccessLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field access_level", values[i])
+			} else if value.Valid {
+				ug.AccessLevel = int(value.Int64)
+			}
 		case usergroup.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
 			} else if value.Valid {
 				ug.CreateTime = value.Time
+			}
+		case usergroup.FieldUpdateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+			} else if value.Valid {
+				ug.UpdateTime = value.Time
 			}
 		}
 	}
@@ -96,8 +112,12 @@ func (ug *UserGroup) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", ug.ID))
 	builder.WriteString(", name=")
 	builder.WriteString(ug.Name)
+	builder.WriteString(", access_level=")
+	builder.WriteString(fmt.Sprintf("%v", ug.AccessLevel))
 	builder.WriteString(", create_time=")
 	builder.WriteString(ug.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", update_time=")
+	builder.WriteString(ug.UpdateTime.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

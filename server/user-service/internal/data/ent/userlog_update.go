@@ -75,6 +75,14 @@ func (ulu *UserLogUpdate) SetCreateTime(t time.Time) *UserLogUpdate {
 	return ulu
 }
 
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (ulu *UserLogUpdate) SetNillableCreateTime(t *time.Time) *UserLogUpdate {
+	if t != nil {
+		ulu.SetCreateTime(*t)
+	}
+	return ulu
+}
+
 // Mutation returns the UserLogMutation object of the builder.
 func (ulu *UserLogUpdate) Mutation() *UserLogMutation {
 	return ulu.mutation
@@ -86,7 +94,6 @@ func (ulu *UserLogUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
-	ulu.defaults()
 	if len(ulu.hooks) == 0 {
 		affected, err = ulu.sqlSave(ctx)
 	} else {
@@ -132,14 +139,6 @@ func (ulu *UserLogUpdate) Exec(ctx context.Context) error {
 func (ulu *UserLogUpdate) ExecX(ctx context.Context) {
 	if err := ulu.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (ulu *UserLogUpdate) defaults() {
-	if _, ok := ulu.mutation.CreateTime(); !ok {
-		v := userlog.UpdateDefaultCreateTime()
-		ulu.mutation.SetCreateTime(v)
 	}
 }
 
@@ -262,6 +261,14 @@ func (uluo *UserLogUpdateOne) SetCreateTime(t time.Time) *UserLogUpdateOne {
 	return uluo
 }
 
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (uluo *UserLogUpdateOne) SetNillableCreateTime(t *time.Time) *UserLogUpdateOne {
+	if t != nil {
+		uluo.SetCreateTime(*t)
+	}
+	return uluo
+}
+
 // Mutation returns the UserLogMutation object of the builder.
 func (uluo *UserLogUpdateOne) Mutation() *UserLogMutation {
 	return uluo.mutation
@@ -280,7 +287,6 @@ func (uluo *UserLogUpdateOne) Save(ctx context.Context) (*UserLog, error) {
 		err  error
 		node *UserLog
 	)
-	uluo.defaults()
 	if len(uluo.hooks) == 0 {
 		node, err = uluo.sqlSave(ctx)
 	} else {
@@ -326,14 +332,6 @@ func (uluo *UserLogUpdateOne) Exec(ctx context.Context) error {
 func (uluo *UserLogUpdateOne) ExecX(ctx context.Context) {
 	if err := uluo.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (uluo *UserLogUpdateOne) defaults() {
-	if _, ok := uluo.mutation.CreateTime(); !ok {
-		v := userlog.UpdateDefaultCreateTime()
-		uluo.mutation.SetCreateTime(v)
 	}
 }
 

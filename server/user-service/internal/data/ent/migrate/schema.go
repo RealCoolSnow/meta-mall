@@ -29,7 +29,9 @@ var (
 	UserGroupsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt32, Increment: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "access_level", Type: field.TypeInt},
 		{Name: "create_time", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
+		{Name: "update_time", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "datetime"}},
 	}
 	// UserGroupsTable holds the schema information for the "user_groups" table.
 	UserGroupsTable = &schema.Table{

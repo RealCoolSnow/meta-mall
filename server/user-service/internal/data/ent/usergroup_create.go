@@ -26,6 +26,12 @@ func (ugc *UserGroupCreate) SetName(s string) *UserGroupCreate {
 	return ugc
 }
 
+// SetAccessLevel sets the "access_level" field.
+func (ugc *UserGroupCreate) SetAccessLevel(i int) *UserGroupCreate {
+	ugc.mutation.SetAccessLevel(i)
+	return ugc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (ugc *UserGroupCreate) SetCreateTime(t time.Time) *UserGroupCreate {
 	ugc.mutation.SetCreateTime(t)
@@ -36,6 +42,20 @@ func (ugc *UserGroupCreate) SetCreateTime(t time.Time) *UserGroupCreate {
 func (ugc *UserGroupCreate) SetNillableCreateTime(t *time.Time) *UserGroupCreate {
 	if t != nil {
 		ugc.SetCreateTime(*t)
+	}
+	return ugc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (ugc *UserGroupCreate) SetUpdateTime(t time.Time) *UserGroupCreate {
+	ugc.mutation.SetUpdateTime(t)
+	return ugc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (ugc *UserGroupCreate) SetNillableUpdateTime(t *time.Time) *UserGroupCreate {
+	if t != nil {
+		ugc.SetUpdateTime(*t)
 	}
 	return ugc
 }
@@ -121,6 +141,10 @@ func (ugc *UserGroupCreate) defaults() {
 		v := usergroup.DefaultCreateTime()
 		ugc.mutation.SetCreateTime(v)
 	}
+	if _, ok := ugc.mutation.UpdateTime(); !ok {
+		v := usergroup.DefaultUpdateTime()
+		ugc.mutation.SetUpdateTime(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -128,8 +152,14 @@ func (ugc *UserGroupCreate) check() error {
 	if _, ok := ugc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "UserGroup.name"`)}
 	}
+	if _, ok := ugc.mutation.AccessLevel(); !ok {
+		return &ValidationError{Name: "access_level", err: errors.New(`ent: missing required field "UserGroup.access_level"`)}
+	}
 	if _, ok := ugc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "UserGroup.create_time"`)}
+	}
+	if _, ok := ugc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "UserGroup.update_time"`)}
 	}
 	return nil
 }
@@ -172,6 +202,14 @@ func (ugc *UserGroupCreate) createSpec() (*UserGroup, *sqlgraph.CreateSpec) {
 		})
 		_node.Name = value
 	}
+	if value, ok := ugc.mutation.AccessLevel(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: usergroup.FieldAccessLevel,
+		})
+		_node.AccessLevel = value
+	}
 	if value, ok := ugc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -179,6 +217,14 @@ func (ugc *UserGroupCreate) createSpec() (*UserGroup, *sqlgraph.CreateSpec) {
 			Column: usergroup.FieldCreateTime,
 		})
 		_node.CreateTime = value
+	}
+	if value, ok := ugc.mutation.UpdateTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: usergroup.FieldUpdateTime,
+		})
+		_node.UpdateTime = value
 	}
 	return _node, _spec
 }

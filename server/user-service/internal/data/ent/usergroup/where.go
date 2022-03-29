@@ -99,10 +99,24 @@ func Name(v string) predicate.UserGroup {
 	})
 }
 
+// AccessLevel applies equality check predicate on the "access_level" field. It's identical to AccessLevelEQ.
+func AccessLevel(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAccessLevel), v))
+	})
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.UserGroup {
 	return predicate.UserGroup(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreateTime), v))
+	})
+}
+
+// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
+func UpdateTime(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
 	})
 }
 
@@ -217,6 +231,82 @@ func NameContainsFold(v string) predicate.UserGroup {
 	})
 }
 
+// AccessLevelEQ applies the EQ predicate on the "access_level" field.
+func AccessLevelEQ(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAccessLevel), v))
+	})
+}
+
+// AccessLevelNEQ applies the NEQ predicate on the "access_level" field.
+func AccessLevelNEQ(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAccessLevel), v))
+	})
+}
+
+// AccessLevelIn applies the In predicate on the "access_level" field.
+func AccessLevelIn(vs ...int) predicate.UserGroup {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.UserGroup(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldAccessLevel), v...))
+	})
+}
+
+// AccessLevelNotIn applies the NotIn predicate on the "access_level" field.
+func AccessLevelNotIn(vs ...int) predicate.UserGroup {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.UserGroup(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldAccessLevel), v...))
+	})
+}
+
+// AccessLevelGT applies the GT predicate on the "access_level" field.
+func AccessLevelGT(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAccessLevel), v))
+	})
+}
+
+// AccessLevelGTE applies the GTE predicate on the "access_level" field.
+func AccessLevelGTE(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAccessLevel), v))
+	})
+}
+
+// AccessLevelLT applies the LT predicate on the "access_level" field.
+func AccessLevelLT(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAccessLevel), v))
+	})
+}
+
+// AccessLevelLTE applies the LTE predicate on the "access_level" field.
+func AccessLevelLTE(v int) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAccessLevel), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.UserGroup {
 	return predicate.UserGroup(func(s *sql.Selector) {
@@ -290,6 +380,82 @@ func CreateTimeLT(v time.Time) predicate.UserGroup {
 func CreateTimeLTE(v time.Time) predicate.UserGroup {
 	return predicate.UserGroup(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCreateTime), v))
+	})
+}
+
+// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
+func UpdateTimeEQ(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
+func UpdateTimeNEQ(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeIn applies the In predicate on the "update_time" field.
+func UpdateTimeIn(vs ...time.Time) predicate.UserGroup {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.UserGroup(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUpdateTime), v...))
+	})
+}
+
+// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.UserGroup {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.UserGroup(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUpdateTime), v...))
+	})
+}
+
+// UpdateTimeGT applies the GT predicate on the "update_time" field.
+func UpdateTimeGT(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
+func UpdateTimeGTE(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeLT applies the LT predicate on the "update_time" field.
+func UpdateTimeLT(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
+func UpdateTimeLTE(v time.Time) predicate.UserGroup {
+	return predicate.UserGroup(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUpdateTime), v))
 	})
 }
 

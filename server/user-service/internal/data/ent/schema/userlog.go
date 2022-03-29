@@ -22,7 +22,7 @@ func (UserLog) Fields() []ent.Field {
 		field.Time("create_time").
 			Default(time.Now).SchemaType(map[string]string{
 			dialect.MySQL: "datetime",
-		}).UpdateDefault(time.Now),
+		}),
 	}
 }
 

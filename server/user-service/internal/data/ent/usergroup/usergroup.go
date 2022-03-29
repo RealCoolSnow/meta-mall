@@ -13,8 +13,12 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldAccessLevel holds the string denoting the access_level field in the database.
+	FieldAccessLevel = "access_level"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
 	// Table holds the table name of the usergroup in the database.
 	Table = "user_groups"
 )
@@ -23,7 +27,9 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldAccessLevel,
 	FieldCreateTime,
+	FieldUpdateTime,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -39,6 +45,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
-	// UpdateDefaultCreateTime holds the default value on update for the "create_time" field.
-	UpdateDefaultCreateTime func() time.Time
+	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
+	DefaultUpdateTime func() time.Time
+	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
+	UpdateDefaultUpdateTime func() time.Time
 )

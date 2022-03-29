@@ -34,9 +34,36 @@ func (ugu *UserGroupUpdate) SetName(s string) *UserGroupUpdate {
 	return ugu
 }
 
+// SetAccessLevel sets the "access_level" field.
+func (ugu *UserGroupUpdate) SetAccessLevel(i int) *UserGroupUpdate {
+	ugu.mutation.ResetAccessLevel()
+	ugu.mutation.SetAccessLevel(i)
+	return ugu
+}
+
+// AddAccessLevel adds i to the "access_level" field.
+func (ugu *UserGroupUpdate) AddAccessLevel(i int) *UserGroupUpdate {
+	ugu.mutation.AddAccessLevel(i)
+	return ugu
+}
+
 // SetCreateTime sets the "create_time" field.
 func (ugu *UserGroupUpdate) SetCreateTime(t time.Time) *UserGroupUpdate {
 	ugu.mutation.SetCreateTime(t)
+	return ugu
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (ugu *UserGroupUpdate) SetNillableCreateTime(t *time.Time) *UserGroupUpdate {
+	if t != nil {
+		ugu.SetCreateTime(*t)
+	}
+	return ugu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (ugu *UserGroupUpdate) SetUpdateTime(t time.Time) *UserGroupUpdate {
+	ugu.mutation.SetUpdateTime(t)
 	return ugu
 }
 
@@ -102,9 +129,9 @@ func (ugu *UserGroupUpdate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ugu *UserGroupUpdate) defaults() {
-	if _, ok := ugu.mutation.CreateTime(); !ok {
-		v := usergroup.UpdateDefaultCreateTime()
-		ugu.mutation.SetCreateTime(v)
+	if _, ok := ugu.mutation.UpdateTime(); !ok {
+		v := usergroup.UpdateDefaultUpdateTime()
+		ugu.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -133,11 +160,32 @@ func (ugu *UserGroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: usergroup.FieldName,
 		})
 	}
+	if value, ok := ugu.mutation.AccessLevel(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: usergroup.FieldAccessLevel,
+		})
+	}
+	if value, ok := ugu.mutation.AddedAccessLevel(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: usergroup.FieldAccessLevel,
+		})
+	}
 	if value, ok := ugu.mutation.CreateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: usergroup.FieldCreateTime,
+		})
+	}
+	if value, ok := ugu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: usergroup.FieldUpdateTime,
 		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ugu.driver, _spec); err != nil {
@@ -165,9 +213,36 @@ func (uguo *UserGroupUpdateOne) SetName(s string) *UserGroupUpdateOne {
 	return uguo
 }
 
+// SetAccessLevel sets the "access_level" field.
+func (uguo *UserGroupUpdateOne) SetAccessLevel(i int) *UserGroupUpdateOne {
+	uguo.mutation.ResetAccessLevel()
+	uguo.mutation.SetAccessLevel(i)
+	return uguo
+}
+
+// AddAccessLevel adds i to the "access_level" field.
+func (uguo *UserGroupUpdateOne) AddAccessLevel(i int) *UserGroupUpdateOne {
+	uguo.mutation.AddAccessLevel(i)
+	return uguo
+}
+
 // SetCreateTime sets the "create_time" field.
 func (uguo *UserGroupUpdateOne) SetCreateTime(t time.Time) *UserGroupUpdateOne {
 	uguo.mutation.SetCreateTime(t)
+	return uguo
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (uguo *UserGroupUpdateOne) SetNillableCreateTime(t *time.Time) *UserGroupUpdateOne {
+	if t != nil {
+		uguo.SetCreateTime(*t)
+	}
+	return uguo
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (uguo *UserGroupUpdateOne) SetUpdateTime(t time.Time) *UserGroupUpdateOne {
+	uguo.mutation.SetUpdateTime(t)
 	return uguo
 }
 
@@ -240,9 +315,9 @@ func (uguo *UserGroupUpdateOne) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uguo *UserGroupUpdateOne) defaults() {
-	if _, ok := uguo.mutation.CreateTime(); !ok {
-		v := usergroup.UpdateDefaultCreateTime()
-		uguo.mutation.SetCreateTime(v)
+	if _, ok := uguo.mutation.UpdateTime(); !ok {
+		v := usergroup.UpdateDefaultUpdateTime()
+		uguo.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -288,11 +363,32 @@ func (uguo *UserGroupUpdateOne) sqlSave(ctx context.Context) (_node *UserGroup, 
 			Column: usergroup.FieldName,
 		})
 	}
+	if value, ok := uguo.mutation.AccessLevel(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: usergroup.FieldAccessLevel,
+		})
+	}
+	if value, ok := uguo.mutation.AddedAccessLevel(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: usergroup.FieldAccessLevel,
+		})
+	}
 	if value, ok := uguo.mutation.CreateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: usergroup.FieldCreateTime,
+		})
+	}
+	if value, ok := uguo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: usergroup.FieldUpdateTime,
 		})
 	}
 	_node = &UserGroup{config: uguo.config}

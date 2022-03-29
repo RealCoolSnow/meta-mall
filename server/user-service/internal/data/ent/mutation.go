@@ -710,15 +710,18 @@ func (m *UserMutation) ResetEdge(name string) error {
 // UserGroupMutation represents an operation that mutates the UserGroup nodes in the graph.
 type UserGroupMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int32
-	name          *string
-	create_time   *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*UserGroup, error)
-	predicates    []predicate.UserGroup
+	op              Op
+	typ             string
+	id              *int32
+	name            *string
+	access_level    *int
+	addaccess_level *int
+	create_time     *time.Time
+	update_time     *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*UserGroup, error)
+	predicates      []predicate.UserGroup
 }
 
 var _ ent.Mutation = (*UserGroupMutation)(nil)
@@ -861,6 +864,62 @@ func (m *UserGroupMutation) ResetName() {
 	m.name = nil
 }
 
+// SetAccessLevel sets the "access_level" field.
+func (m *UserGroupMutation) SetAccessLevel(i int) {
+	m.access_level = &i
+	m.addaccess_level = nil
+}
+
+// AccessLevel returns the value of the "access_level" field in the mutation.
+func (m *UserGroupMutation) AccessLevel() (r int, exists bool) {
+	v := m.access_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccessLevel returns the old "access_level" field's value of the UserGroup entity.
+// If the UserGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserGroupMutation) OldAccessLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccessLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccessLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccessLevel: %w", err)
+	}
+	return oldValue.AccessLevel, nil
+}
+
+// AddAccessLevel adds i to the "access_level" field.
+func (m *UserGroupMutation) AddAccessLevel(i int) {
+	if m.addaccess_level != nil {
+		*m.addaccess_level += i
+	} else {
+		m.addaccess_level = &i
+	}
+}
+
+// AddedAccessLevel returns the value that was added to the "access_level" field in this mutation.
+func (m *UserGroupMutation) AddedAccessLevel() (r int, exists bool) {
+	v := m.addaccess_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAccessLevel resets all changes to the "access_level" field.
+func (m *UserGroupMutation) ResetAccessLevel() {
+	m.access_level = nil
+	m.addaccess_level = nil
+}
+
 // SetCreateTime sets the "create_time" field.
 func (m *UserGroupMutation) SetCreateTime(t time.Time) {
 	m.create_time = &t
@@ -897,6 +956,42 @@ func (m *UserGroupMutation) ResetCreateTime() {
 	m.create_time = nil
 }
 
+// SetUpdateTime sets the "update_time" field.
+func (m *UserGroupMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *UserGroupMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the UserGroup entity.
+// If the UserGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserGroupMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *UserGroupMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
 // Where appends a list predicates to the UserGroupMutation builder.
 func (m *UserGroupMutation) Where(ps ...predicate.UserGroup) {
 	m.predicates = append(m.predicates, ps...)
@@ -916,12 +1011,18 @@ func (m *UserGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserGroupMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, usergroup.FieldName)
 	}
+	if m.access_level != nil {
+		fields = append(fields, usergroup.FieldAccessLevel)
+	}
 	if m.create_time != nil {
 		fields = append(fields, usergroup.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, usergroup.FieldUpdateTime)
 	}
 	return fields
 }
@@ -933,8 +1034,12 @@ func (m *UserGroupMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case usergroup.FieldName:
 		return m.Name()
+	case usergroup.FieldAccessLevel:
+		return m.AccessLevel()
 	case usergroup.FieldCreateTime:
 		return m.CreateTime()
+	case usergroup.FieldUpdateTime:
+		return m.UpdateTime()
 	}
 	return nil, false
 }
@@ -946,8 +1051,12 @@ func (m *UserGroupMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case usergroup.FieldName:
 		return m.OldName(ctx)
+	case usergroup.FieldAccessLevel:
+		return m.OldAccessLevel(ctx)
 	case usergroup.FieldCreateTime:
 		return m.OldCreateTime(ctx)
+	case usergroup.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown UserGroup field %s", name)
 }
@@ -964,12 +1073,26 @@ func (m *UserGroupMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
+	case usergroup.FieldAccessLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccessLevel(v)
+		return nil
 	case usergroup.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreateTime(v)
+		return nil
+	case usergroup.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
 		return nil
 	}
 	return fmt.Errorf("unknown UserGroup field %s", name)
@@ -978,13 +1101,21 @@ func (m *UserGroupMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserGroupMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addaccess_level != nil {
+		fields = append(fields, usergroup.FieldAccessLevel)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserGroupMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case usergroup.FieldAccessLevel:
+		return m.AddedAccessLevel()
+	}
 	return nil, false
 }
 
@@ -993,6 +1124,13 @@ func (m *UserGroupMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserGroupMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case usergroup.FieldAccessLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAccessLevel(v)
+		return nil
 	}
 	return fmt.Errorf("unknown UserGroup numeric field %s", name)
 }
@@ -1023,8 +1161,14 @@ func (m *UserGroupMutation) ResetField(name string) error {
 	case usergroup.FieldName:
 		m.ResetName()
 		return nil
+	case usergroup.FieldAccessLevel:
+		m.ResetAccessLevel()
+		return nil
 	case usergroup.FieldCreateTime:
 		m.ResetCreateTime()
+		return nil
+	case usergroup.FieldUpdateTime:
+		m.ResetUpdateTime()
 		return nil
 	}
 	return fmt.Errorf("unknown UserGroup field %s", name)

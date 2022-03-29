@@ -17,7 +17,12 @@ func (UserGroup) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int32("id"),
 		field.String("name"),
+		field.Int("access_level"),
 		field.Time("create_time").
+			Default(time.Now).SchemaType(map[string]string{
+			dialect.MySQL: "datetime",
+		}),
+		field.Time("update_time").
 			Default(time.Now).SchemaType(map[string]string{
 			dialect.MySQL: "datetime",
 		}).UpdateDefault(time.Now),

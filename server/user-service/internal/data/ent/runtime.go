@@ -57,11 +57,15 @@ func init() {
 	usergroupFields := schema.UserGroup{}.Fields()
 	_ = usergroupFields
 	// usergroupDescCreateTime is the schema descriptor for create_time field.
-	usergroupDescCreateTime := usergroupFields[2].Descriptor()
+	usergroupDescCreateTime := usergroupFields[3].Descriptor()
 	// usergroup.DefaultCreateTime holds the default value on creation for the create_time field.
 	usergroup.DefaultCreateTime = usergroupDescCreateTime.Default.(func() time.Time)
-	// usergroup.UpdateDefaultCreateTime holds the default value on update for the create_time field.
-	usergroup.UpdateDefaultCreateTime = usergroupDescCreateTime.UpdateDefault.(func() time.Time)
+	// usergroupDescUpdateTime is the schema descriptor for update_time field.
+	usergroupDescUpdateTime := usergroupFields[4].Descriptor()
+	// usergroup.DefaultUpdateTime holds the default value on creation for the update_time field.
+	usergroup.DefaultUpdateTime = usergroupDescUpdateTime.Default.(func() time.Time)
+	// usergroup.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	usergroup.UpdateDefaultUpdateTime = usergroupDescUpdateTime.UpdateDefault.(func() time.Time)
 	userlogFields := schema.UserLog{}.Fields()
 	_ = userlogFields
 	// userlogDescIP is the schema descriptor for ip field.
@@ -76,6 +80,4 @@ func init() {
 	userlogDescCreateTime := userlogFields[4].Descriptor()
 	// userlog.DefaultCreateTime holds the default value on creation for the create_time field.
 	userlog.DefaultCreateTime = userlogDescCreateTime.Default.(func() time.Time)
-	// userlog.UpdateDefaultCreateTime holds the default value on update for the create_time field.
-	userlog.UpdateDefaultCreateTime = userlogDescCreateTime.UpdateDefault.(func() time.Time)
 }

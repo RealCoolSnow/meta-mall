@@ -49,6 +49,4 @@ var (
 	DefaultExtra string
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
-	// UpdateDefaultCreateTime holds the default value on update for the "create_time" field.
-	UpdateDefaultCreateTime func() time.Time
 )
