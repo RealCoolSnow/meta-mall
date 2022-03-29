@@ -9,16 +9,12 @@ import (
 	"github.com/go-redis/redis/extra/redisotel/v8"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/google/wire"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"user-service/internal/conf"
 	"user-service/internal/data/ent"
 )
-
-// ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewGreeterRepo)
 
 // Data .
 type Data struct {
